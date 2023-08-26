@@ -53,4 +53,22 @@ internal class SonglinkClientTests
 
         response.PageUrl.Should().NotBeNullOrEmpty();
     }
+
+    [Test]
+    public async Task TestGetAllSongLinks_AlbumLink_Success()
+    {
+        var response = await _songlinkClient.GetAllSongLinksAsync(
+            "https://open.spotify.com/album/5SMhoGL3lWmlYagofVSBwL?si=s_aJlaIlQe2RWWSIKpd1Zg",
+            CancellationToken.None);
+
+        response.Should().NotBeNull();
+
+        response.IsSuccess.Should().BeTrue();
+        response.ErrorMessage.Should().BeNull();
+
+        response.EntitiesByUniqueId.Count.Should().BeGreaterThan(0);
+        response.LinksByPlatform.Count.Should().BeGreaterThan(0);
+
+        response.PageUrl.Should().NotBeNullOrEmpty();
+    }
 }
