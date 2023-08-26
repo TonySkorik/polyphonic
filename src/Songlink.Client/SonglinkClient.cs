@@ -67,11 +67,11 @@ public class SonglinkClient
         if (response.IsSuccessful)
         {
             response.Data!.IsSuccess = true;
+
             return response.Data;
         }
 
         if (!response.IsSuccessStatusCode
-            // BadRequest && NotFound contains error message in its "status" json field so still we need to parse response
             && response.StatusCode != HttpStatusCode.BadRequest
             && response.StatusCode != HttpStatusCode.NotFound
             && response.StatusCode != HttpStatusCode.Forbidden)
@@ -85,7 +85,11 @@ public class SonglinkClient
         }
 
         var errorResponse = Activator.CreateInstance<TResponse>();
+
         errorResponse.IsSuccess = false;
+
+        // here errorResponse.ErrorMessage always contains complaints about inability to create 
+        // SonglinkResponse due to some required properties uninitialized
         errorResponse.ErrorMessage = response.Content;
 
         return errorResponse;
