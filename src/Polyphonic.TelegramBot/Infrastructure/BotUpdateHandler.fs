@@ -11,47 +11,56 @@ open Telegram.Bot.Types.ReplyMarkups
 open Telegram.Bot.Polling
 
 type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
-    let mutable screaming = false
+    let mutable isScreaming = false
 
     let firstMenu = "<b>Menu 1</b>\n\nA beautiful menu with a shiny inline button."
 
     let secondMenu =
         "<b>Menu 2</b>\n\nA better menu with even more shiny inline buttons."
 
-    let nextButton = "Next"
-    let backButton = "Back"
-    let tutorialButton = "Tutorial"
+    // Values that are intended to be constants can be marked with the Literal attribute.
+    // This attribute has the effect of causing a value to be compiled as a constant.
+    [<Literal>]
+    let nextButtonText = "Next"
+
+    [<Literal>]
+    let backButtonText = "Back"
+
+    [<Literal>]
+    let tutorialButtonText = "Tutorial"
 
     let firstMenuMarkup =
-        InlineKeyboardMarkup([| [| InlineKeyboardButton.WithCallbackData(nextButton) |] |])
+        InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(nextButtonText))
+
+    let backButton = [| InlineKeyboardButton.WithCallbackData(backButtonText) |]
+
+    let tutorialButton =
+        [| InlineKeyboardButton.WithUrl(tutorialButtonText, "https://core.telegram.org/bots/tutorial") |]
 
     let secondMenuMarkup =
-        InlineKeyboardMarkup(
-            [| [| InlineKeyboardButton.WithCallbackData(backButton) |]
-               [| InlineKeyboardButton.WithUrl(tutorialButton, "https://core.telegram.org/bots/tutorial") |] |]
-        )
+        InlineKeyboardMarkup(inlineKeyboard = [| backButton; tutorialButton |])
 
-    let handleCommand (botClient: ITelegramBotClient, userId: Int64, command: string) =
-        async {
-            match command with
-            | "/scream" -> screaming <- true
-            | "/whisper" -> screaming <- false
-            | "/menu" -> do! sendMenu (botClient, userId)
-            | _ -> ()
-        }
-        |> Async.StartAsTask
-
-    let sendMenu (botClient: ITelegramBotClient, userId: Int64) =
+    let sendMenu (botClient: ITelegramBotClient) (userId: int64) =
         async {
             do! botClient.SendTextMessageAsync(userId, firstMenu, ParseMode.Html, replyMarkup = firstMenuMarkup)
             |> Async.AwaitTask
         }
         |> Async.StartAsTask
 
+    let handleCommand (botClient: ITelegramBotClient, userId: int64, command: string) =
+        async {
+            match command with
+            | "/scream" -> isScreaming <- true
+            | "/whisper" -> isScreaming <- false
+            | "/menu" -> do! sendMenu botClient userId
+            | _ -> ()
+        }
+        |> Async.StartAsTask
+
     let handleButton (botClient: ITelegramBotClient, query: CallbackQuery) =
         async {
             let mutable text = ""
-            let mutable markup = InlineKeyboardMarkup([||])
+            let mutable markup = new InlineKeyboardMarkup(inlineKeyboard = [||])
 
             match query.Data with
             | nextButton ->
@@ -84,18 +93,18 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
         member this.HandleUpdateAsync(botClient, update, cancellationToken) =
             async {
                 match update.Type with
-                | UpdateType.Message when not (update.Message.IsNone) ->
+                | UpdateType.Message when not (update.Message != null) ->
                     let message = update.Message
                     let user = message.From
                     let text: string = message.Text
 
-                    if user.IsSome then
-                        let username = user.Value.FirstName
+                    if user != null then
+                        let username = user.FirstName
                         Console.WriteLine($"{username} wrote {text}")
 
                     if text.StartsWith("/") then
-                        do! handleCommand (botClient, user.Value.Id, text) |> Async.AwaitTask
-                    elif screaming && text.Length > 0 then
+                        do! handleCommand (botClient, user.Id, text) |> Async.AwaitTask
+                    elif isScreaming && text.Length > 0 then
                         do!
                             botClient.SendTextMessageAsync(user.Value.Id, text.ToUpper(), entities = message.Entities)
                             |> Async.AwaitTask

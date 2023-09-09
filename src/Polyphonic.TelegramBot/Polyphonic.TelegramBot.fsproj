@@ -10,6 +10,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <DependentUpon>appsettings.json</DependentUpon>
     </Content>
+    <Compile Include="Configuration\BotConfiguration.fs" />
+    <Compile Include="PolyphonicTelegramBot.fs" />
     <Compile Include="Infrastructure\BotUpdateHandler.fs" />
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -19,10 +21,6 @@
       <DependentUpon>appsettings.json</DependentUpon>
     </Content>
     <Compile Include="Program.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Configuration\" />
   </ItemGroup>
 
     <ItemGroup>
