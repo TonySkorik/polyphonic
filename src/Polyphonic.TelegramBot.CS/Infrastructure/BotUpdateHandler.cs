@@ -25,8 +25,12 @@ internal class BotUpdateHandler : IUpdateHandler
     private InlineKeyboardMarkup _firstMenuMarkup = new(InlineKeyboardButton.WithCallbackData(NEXT_BUTTON));
     private InlineKeyboardMarkup _secondMenuMarkup = new(
         new[] {
-        new[] { InlineKeyboardButton.WithCallbackData(BACK_BUTTON) },
-        new[] { InlineKeyboardButton.WithUrl(TUTORIAL_BUTTON, "https://core.telegram.org/bots/tutorial") }
+            new[] {
+                InlineKeyboardButton.WithCallbackData(BACK_BUTTON)
+            },
+            new[] {
+                InlineKeyboardButton.WithUrl(TUTORIAL_BUTTON, "https://core.telegram.org/bots/tutorial")
+            }
         }
     );
 
@@ -151,5 +155,4 @@ internal class BotUpdateHandler : IUpdateHandler
             replyMarkup: markup
         );
     }
-
 }

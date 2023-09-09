@@ -68,5 +68,4 @@ public class Program
 
         services.AddSingleton(microsoftLogger);
     }
-
 }
