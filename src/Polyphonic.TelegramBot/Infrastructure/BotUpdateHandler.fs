@@ -1,7 +1,6 @@
 ﻿namespace Polyphonic.TelegramBot.Infrastructure
 
 open System
-open System.Threading
 open System.Threading.Tasks
 open Microsoft.Extensions.Logging
 open Telegram.Bot
@@ -42,8 +41,9 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
 
     let sendMenu (botClient: ITelegramBotClient) (userId: int64) =
         async {
-            do! botClient.SendTextMessageAsync(userId, firstMenu, ParseMode.Html, replyMarkup = firstMenuMarkup)
+            botClient.SendTextMessageAsync(userId, firstMenu, parseMode = ParseMode.Html, replyMarkup = firstMenuMarkup)
             |> Async.AwaitTask
+            |> ignore
         }
         |> Async.StartAsTask
 
@@ -52,7 +52,7 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
             match command with
             | "/scream" -> isScreaming <- true
             | "/whisper" -> isScreaming <- false
-            | "/menu" -> do! sendMenu botClient userId
+            | "/menu" -> do! sendMenu botClient userId |> Async.AwaitTask
             | _ -> ()
         }
         |> Async.StartAsTask
@@ -63,25 +63,25 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
             let mutable markup = new InlineKeyboardMarkup(inlineKeyboard = [||])
 
             match query.Data with
-            | nextButton ->
+            | "Next" ->
                 text <- secondMenu
                 markup <- secondMenuMarkup
-            | backButton ->
+            | "Back" ->
                 text <- firstMenu
                 markup <- firstMenuMarkup
             | _ -> ()
 
             do! botClient.AnswerCallbackQueryAsync(query.Id) |> Async.AwaitTask
 
-            do!
-                botClient.EditMessageTextAsync(
-                    query.Message.Chat.Id,
-                    query.Message.MessageId,
-                    text,
-                    ParseMode.Html,
-                    replyMarkup = markup
-                )
+            botClient.EditMessageTextAsync(
+                chatId = query.Message.Chat.Id,
+                messageId = query.Message.MessageId,
+                text = text,
+                parseMode = ParseMode.Html,
+                replyMarkup = markup
+            )
             |> Async.AwaitTask
+            |> ignore
         }
         |> Async.StartAsTask
 
@@ -91,29 +91,34 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
             Task.CompletedTask
 
         member this.HandleUpdateAsync(botClient, update, cancellationToken) =
-            async {
+            task {
                 match update.Type with
-                | UpdateType.Message when not (update.Message != null) ->
+                | UpdateType.Message ->
                     let message = update.Message
                     let user = message.From
                     let text: string = message.Text
 
-                    if user != null then
-                        let username = user.FirstName
-                        Console.WriteLine($"{username} wrote {text}")
+                    let username = user.FirstName
+                    Console.WriteLine($"{username} wrote {text}")
 
                     if text.StartsWith("/") then
                         do! handleCommand (botClient, user.Id, text) |> Async.AwaitTask
                     elif isScreaming && text.Length > 0 then
-                        do!
-                            botClient.SendTextMessageAsync(user.Value.Id, text.ToUpper(), entities = message.Entities)
-                            |> Async.AwaitTask
+                        botClient.SendTextMessageAsync(user.Id, text.ToUpper(), entities = message.Entities)
+                        |> Async.AwaitTask
+                        |> ignore
                     else
-                        do!
-                            botClient.CopyMessageAsync(user.Value.Id, user.Value.Id, message.MessageId)
+                        let! _ =
+                            botClient.CopyMessageAsync(user.Id, user.Id, message.MessageId)
                             |> Async.AwaitTask
-                | UpdateType.CallbackQuery when not (update.CallbackQuery.IsNone) ->
-                    do! handleButton (botClient, update.CallbackQuery.Value) |> Async.AwaitTask
+
+                        () // same as |> ignore ???
+
+                    ()
+                | UpdateType.CallbackQuery ->
+                    do!
+                        handleButton (botClient, update.CallbackQuery)
+                        |> Async.AwaitTask
+                        |> Async.Ignore
                 | _ -> ()
             }
-            |> Async.StartAsTask

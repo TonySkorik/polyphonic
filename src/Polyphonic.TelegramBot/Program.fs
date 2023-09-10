@@ -6,11 +6,11 @@ open Microsoft.Extensions.Logging
 open Telegram.Bot.Polling
 open System
 open System.IO
-open Polyphonic.TelegramBot.Infrastructure
 open Polyphonic.TelegramBot
 open Polyphonic.TelegramBot.Configuration
 open Serilog
 open Serilog.Extensions.Logging
+open Polyphonic.TelegramBot.Infrastructure
 
 let AddLogger<'T> (services: IServiceCollection) =
     let logger =
