@@ -45,17 +45,15 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
             |> Async.AwaitTask
             |> ignore
         }
-        |> Async.StartAsTask
 
     let handleCommand (botClient: ITelegramBotClient, userId: int64, command: string) =
         async {
             match command with
             | "/scream" -> isScreaming <- true
             | "/whisper" -> isScreaming <- false
-            | "/menu" -> do! sendMenu botClient userId |> Async.AwaitTask
+            | "/menu" -> do! sendMenu botClient userId
             | _ -> ()
         }
-        |> Async.StartAsTask
 
     let handleButton (botClient: ITelegramBotClient, query: CallbackQuery) =
         async {
@@ -80,18 +78,16 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
                 parseMode = ParseMode.Html,
                 replyMarkup = markup
             )
-            |> Async.AwaitTask
             |> ignore
         }
-        |> Async.StartAsTask
 
     interface IUpdateHandler with
-        member this.HandlePollingErrorAsync(botClient, e: Exception, cancellationToken) =
+        member _.HandlePollingErrorAsync(botClient, e: Exception, cancellationToken) =
             logger.LogError(e.Message)
             Task.CompletedTask
 
-        member this.HandleUpdateAsync(botClient, update, cancellationToken) =
-            task {
+        member _.HandleUpdateAsync(botClient, update, cancellationToken) =
+            async {
                 match update.Type with
                 | UpdateType.Message ->
                     let message = update.Message
@@ -102,7 +98,7 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
                     Console.WriteLine($"{username} wrote {text}")
 
                     if text.StartsWith("/") then
-                        do! handleCommand (botClient, user.Id, text) |> Async.AwaitTask
+                        do! handleCommand (botClient, user.Id, text)
                     elif isScreaming && text.Length > 0 then
                         botClient.SendTextMessageAsync(user.Id, text.ToUpper(), entities = message.Entities)
                         |> Async.AwaitTask
@@ -115,10 +111,10 @@ type BotUpdateHandler(logger: ILogger<BotUpdateHandler>) =
                         () // same as |> ignore ???
 
                     ()
-                | UpdateType.CallbackQuery ->
-                    do!
-                        handleButton (botClient, update.CallbackQuery)
-                        |> Async.AwaitTask
-                        |> Async.Ignore
+                | UpdateType.CallbackQuery -> do! handleButton (botClient, update.CallbackQuery)
                 | _ -> ()
             }
+            |> Async.Start
+            |> ignore
+
+            Task.CompletedTask

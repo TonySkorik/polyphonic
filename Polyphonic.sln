@@ -18,7 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Songlink.Client", "src\Songlink.Client\Songlink.Client.csproj", "{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Polyphonic.TelegramBot", "src\Polyphonic.TelegramBot\Polyphonic.TelegramBot.fsproj", "{3A5D4639-8CAE-43F8-830F-09856E386FE1}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Polyphonic.TelegramBot", "src\Polyphonic.TelegramBot\Polyphonic.TelegramBot.fsproj", "{3A5D4639-8CAE-43F8-830F-09856E386FE1}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TestApp", "TestApp\TestApp.fsproj", "{6E84597D-0EEA-42CD-B885-34D792FBCAAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,10 @@ Global
 		{3A5D4639-8CAE-43F8-830F-09856E386FE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A5D4639-8CAE-43F8-830F-09856E386FE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A5D4639-8CAE-43F8-830F-09856E386FE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E84597D-0EEA-42CD-B885-34D792FBCAAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E84597D-0EEA-42CD-B885-34D792FBCAAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E84597D-0EEA-42CD-B885-34D792FBCAAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E84597D-0EEA-42CD-B885-34D792FBCAAE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +56,7 @@ Global
 		{0EF753B2-E5E5-4A6E-871C-0ADE8F383311} = {53E7D436-7F3C-44D5-8081-909A5F6A7F4B}
 		{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19} = {043A5AF7-6ACB-460F-9053-CF031AD36CF7}
 		{3A5D4639-8CAE-43F8-830F-09856E386FE1} = {53E7D436-7F3C-44D5-8081-909A5F6A7F4B}
+		{6E84597D-0EEA-42CD-B885-34D792FBCAAE} = {53E7D436-7F3C-44D5-8081-909A5F6A7F4B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B900084D-B56E-49D6-8F49-63DAFB66A447}

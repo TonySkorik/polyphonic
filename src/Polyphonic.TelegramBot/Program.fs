@@ -51,4 +51,7 @@ type Program() =
         use host = builder.Build()
         host.Run()
 
-Program.Main(Environment.GetCommandLineArgs())
+        0 // exit code
+
+[<EntryPoint>]
+let main argv = Program.Main argv
