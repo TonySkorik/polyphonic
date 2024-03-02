@@ -4,20 +4,20 @@ using Songlink.Client;
 
 namespace Polyphonic.Tests.TestClasses;
 
-internal class SonglinkClientTests
+internal class SongLinkClientTests
 {
-    private SonglinkClient _songlinkClient;
+    private SongLinkClient _songLinkClient;
 
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
-        _songlinkClient = new SonglinkClient("https://api.song.link/");
+        _songLinkClient = new SongLinkClient("https://api.song.link/");
     }
 
     [Test]
     public async Task TestGetAllSongLinks_SongNotFound()
     {
-        var response = await _songlinkClient.GetAllSongLinksAsync(
+        var response = await _songLinkClient.GetAllSongLinksAsync(
             "https://open.spotify.com/track/AAAA", // not found by original share link
             CancellationToken.None);
 
@@ -28,7 +28,7 @@ internal class SonglinkClientTests
     [Test]
     public async Task TestGetAllSongLinks_InvalidUrl()
     {
-        var response = await _songlinkClient.GetAllSongLinksAsync(
+        var response = await _songLinkClient.GetAllSongLinksAsync(
             "AAAA", // invalid url
             CancellationToken.None);
 
@@ -39,7 +39,7 @@ internal class SonglinkClientTests
     [Test]
     public async Task TestGetAllSongLinks_Success()
     {
-        var response = await _songlinkClient.GetAllSongLinksAsync(
+        var response = await _songLinkClient.GetAllSongLinksAsync(
             "https://open.spotify.com/track/0PUa24Pxvvxa3ys7reyGSx",
             CancellationToken.None);
 
@@ -57,7 +57,7 @@ internal class SonglinkClientTests
     [Test]
     public async Task TestGetAllSongLinks_AlbumLink_Success()
     {
-        var response = await _songlinkClient.GetAllSongLinksAsync(
+        var response = await _songLinkClient.GetAllSongLinksAsync(
             "https://open.spotify.com/album/5SMhoGL3lWmlYagofVSBwL?si=s_aJlaIlQe2RWWSIKpd1Zg",
             CancellationToken.None);
 

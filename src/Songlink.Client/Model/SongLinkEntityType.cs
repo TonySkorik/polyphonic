@@ -1,6 +1,6 @@
 ﻿namespace Songlink.Client.Model;
 
-public enum SonglinkEntityType
+public enum SongLinkEntityType
 {
     Unknown,
 

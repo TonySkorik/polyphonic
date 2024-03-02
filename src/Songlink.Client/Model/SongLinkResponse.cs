@@ -116,7 +116,7 @@ type APIProvider =
   | 'boomplay';
 */
 
-public class SonglinkResponse : SongLinkResponseBase
+public class SongLinkResponse : SongLinkResponseBase
 {
     /// <summary>
     /// The unique ID for the input entity that was supplied in the request. 
@@ -144,7 +144,7 @@ public class SonglinkResponse : SongLinkResponseBase
     /// only if there is a match found. E.g. if there is no YouTube match found,
     /// then neither `youtube` or `youtubeMusic` properties will exist here.
     /// </summary>
-    public required Dictionary<SonglinkPlatform, PlatformSongLinks> LinksByPlatform { set; get; }
+    public required Dictionary<SongLinkPlatform, PlatformSongLinks> LinksByPlatform { set; get; }
 
     /// <summary>
     /// A collection of objects. Each key is a unique identifier for a streaming
@@ -189,7 +189,7 @@ public class SonglinkResponse : SongLinkResponseBase
         /// <summary>
         /// The entity type.
         /// </summary>
-        public SonglinkEntityType Type { set; get; }
+        public SongLinkEntityType Type { set; get; }
 
         public string? Title { set; get; }
 
@@ -205,7 +205,7 @@ public class SonglinkResponse : SongLinkResponseBase
         /// The API provider that powered this match. Useful if you'd like to use
         /// this entity's data to query the API directly.
         /// </summary>
-        public SonglinkApiProvider ApiProvider { set; get; }
+        public SongLinkApiProvider ApiProvider { set; get; }
 
         /// <summary>
         /// An array of platforms that are "powered" by this entity. E.g. an entity
@@ -213,6 +213,6 @@ public class SonglinkResponse : SongLinkResponseBase
         /// `["appleMusic", "itunes"]` since both those platforms/links are derived
         /// from this single entity.
         /// </summary>
-        public required SonglinkPlatform[] Platforms { set; get; }
+        public required SongLinkPlatform[] Platforms { set; get; }
     }
 }

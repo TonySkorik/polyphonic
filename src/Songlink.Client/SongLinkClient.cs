@@ -4,45 +4,67 @@ using System.Text.Json.Serialization;
 
 using RestSharp;
 using RestSharp.Serializers.Json;
-
+using Songlink.Client.Abstractions;
+using Songlink.Client.Configuration;
 using Songlink.Client.Exceptions;
 using Songlink.Client.Model;
 using Songlink.Client.Model.Base;
 
 namespace Songlink.Client;
 
-public class SonglinkClient
+public class SongLinkClient
 {
-    private RestClient _restClient;
+    private readonly RestClient _restClient;
 
     private const string GET_SONG_LINKS_RESOURCE = "v1-alpha.1/links";
 
-    public SonglinkClient(string apiUrl, string? apiKey = null)
-    {
-        var restClientOptions = new RestClientOptions()
+    private static readonly JsonSerializerOptions _serializerOptions =
+        new(JsonSerializerDefaults.Web)
         {
-            BaseUrl = new Uri(apiUrl),
+            Converters = {new JsonStringEnumConverter(allowIntegerValues: true)}
         };
 
-        var serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        serializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
+    public SongLinkClient(
+        IHttpClientFactory httpClientFactory,
+        ISonglinkConfigurationProvider? configurationProvider = null)
+    {
+        // TODO: add getting api key form configurationProvider
+
+        var httpClient = httpClientFactory.CreateClient(SonglinkClientConfiguration.SonglinkHttpClientName);
 
         _restClient = new RestClient(
-            restClientOptions,
-            configureSerialization: s => s.UseSystemTextJson(serializerOptions)
+            httpClient,
+            configureSerialization: s => s.UseSystemTextJson(_serializerOptions)
         );
     }
 
-    public async Task<SonglinkResponse> GetAllSongLinksAsync(
+    public SongLinkClient(string apiUrl, string? apiKey = null)
+    {
+        var restClientOptions = new RestClientOptions()
+        {
+            BaseUrl = new Uri(apiUrl)
+        };
+        
+        _restClient = new RestClient(
+            restClientOptions,
+            configureSerialization: s => s.UseSystemTextJson(_serializerOptions)
+        );
+    }
+
+    public Task<SongLinkResponse> GetAllSongLinksAsync(
+        Uri songShareUri,
+        CancellationToken cancellationToken)
+    {
+        return GetAllSongLinksAsync(songShareUri.ToString(), cancellationToken);
+    }
+
+    public async Task<SongLinkResponse> GetAllSongLinksAsync(
         string songShareLink,
         CancellationToken cancellationToken)
     {
-        if (songShareLink is null)
-        {
-            throw new ArgumentNullException(nameof(songShareLink));
-        }
+        ArgumentNullException.ThrowIfNull(songShareLink);
 
-        var request = new RestRequest(GET_SONG_LINKS_RESOURCE, Method.Get);
+        var request = new RestRequest(GET_SONG_LINKS_RESOURCE);
 
         request.Parameters.AddParameter(
             Parameter.CreateParameter(
@@ -52,7 +74,7 @@ public class SonglinkClient
             )
         );
 
-        var response = await ExecuteRequestCore<SonglinkResponse>(request, cancellationToken);
+        var response = await ExecuteRequestCore<SongLinkResponse>(request, cancellationToken);
 
         return response;
     }

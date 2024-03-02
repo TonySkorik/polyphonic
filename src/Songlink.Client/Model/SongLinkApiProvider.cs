@@ -1,6 +1,6 @@
 ﻿namespace Songlink.Client.Model;
 
-public enum SonglinkApiProvider
+public enum SongLinkApiProvider
 {
     Unknown,
 

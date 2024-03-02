@@ -1,6 +1,6 @@
 ﻿namespace Songlink.Client.Model;
 
-public enum SonglinkPlatform
+public enum SongLinkPlatform
 {
     Unknown,
 
