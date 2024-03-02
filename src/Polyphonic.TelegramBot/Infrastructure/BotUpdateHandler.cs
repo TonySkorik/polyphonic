@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Polyphonic.TelegramBot.Abstractions;
-using Polyphonic.TelegramBot.Configuration;
 using Polyphonic.TelegramBot.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -12,6 +10,7 @@ namespace Polyphonic.TelegramBot.Infrastructure;
 
 internal class BotUpdateHandler(
     IEnumerable<IBotCommandHandler> commandHandlers,
+    IBotInlineQueryHandler inlineQueryHandler,
     ILogger<BotUpdateHandler> logger) : IUpdateHandler
 {
     private readonly ILogger _logger = logger;
@@ -27,7 +26,7 @@ internal class BotUpdateHandler(
     }
 
     public async Task HandleUpdateAsync(
-        ITelegramBotClient botCleint,
+        ITelegramBotClient botClient,
         Update update,
         CancellationToken cancellationToken)
     {
@@ -35,18 +34,23 @@ internal class BotUpdateHandler(
         {
             // A message was received
             case UpdateType.Message:
-                await HandleMessage(botCleint, update.Message!, cancellationToken);
+                await HandleMessage(botClient, update.Message!, cancellationToken);
                 break;
 
             // A button was pressed
             case UpdateType.CallbackQuery:
-                await HandleButtonClick(botCleint, update.CallbackQuery!, cancellationToken);
+                await HandleButtonClick(botClient, update.CallbackQuery!, cancellationToken);
+                break;
+            
+            // An inline query was received
+            case UpdateType.InlineQuery:
+                await inlineQueryHandler.HandleAsync(botClient, update.InlineQuery!, cancellationToken);
                 break;
         }
     }
 
     private async Task HandleMessage(
-        ITelegramBotClient botCleint,
+        ITelegramBotClient botClient,
         Message message,
         CancellationToken cancellationToken)
     {
@@ -72,13 +76,13 @@ internal class BotUpdateHandler(
         if (IBotCommandHandler.IsCommand(messageText))
         {
             // means message is bot command
-            await HandleCommand(botCleint, message, cancellationToken);
+            await HandleCommand(botClient, message, cancellationToken);
         }
         else
-        { 
+        {
             // this is equivalent to forwarding, without the sender's name
             
-            await botCleint.CopyMessageAsync(
+            await botClient.CopyMessageAsync(
                 sender.Id,
                 sender.Id,
                 message.MessageId,
@@ -87,7 +91,7 @@ internal class BotUpdateHandler(
     }
 
     private async Task HandleCommand(
-        ITelegramBotClient botCleint,
+        ITelegramBotClient botClient,
         Message message,
         CancellationToken cancellationToken)
     {
@@ -95,7 +99,7 @@ internal class BotUpdateHandler(
 
         if (!parsedCommand.IsCommandValid)
         {
-            await botCleint.SendTextMessageAsync(
+            await botClient.SendTextMessageAsync(
                 message.From!.Id,
                 $"Invalid command '{parsedCommand.CommandName}'. Command format : '/<command_name> [argument_1] ... [argument_n]'",
                 cancellationToken: cancellationToken);
@@ -103,19 +107,19 @@ internal class BotUpdateHandler(
 
         foreach (var commandHandler in commandHandlers)
         {
-            if (!commandHandler.CanHandle(parsedCommand))
+            if (!commandHandler.CanHandle(parsedCommand).CanHandleInMessage)
             {
                 continue;
             }
 
-            await commandHandler.HandleAsync(botCleint, message, parsedCommand, cancellationToken);
+            await commandHandler.HandleAsync(botClient, message, parsedCommand, cancellationToken);
             
             return;
         }
     }
 
     private async Task HandleButtonClick(
-        ITelegramBotClient botCleint,
+        ITelegramBotClient botClient,
         CallbackQuery query,
         CancellationToken cancellationToken)
     {
@@ -131,10 +135,10 @@ internal class BotUpdateHandler(
         // }
 
         // Close the query to end the client-side loading animation
-        await botCleint.AnswerCallbackQueryAsync(query.Id, cancellationToken: cancellationToken);
+        await botClient.AnswerCallbackQueryAsync(query.Id, cancellationToken: cancellationToken);
 
         // Replace menu text and keyboard
-        await botCleint.EditMessageTextAsync(
+        await botClient.EditMessageTextAsync(
             query.Message!.Chat.Id,
             query.Message.MessageId,
             text,

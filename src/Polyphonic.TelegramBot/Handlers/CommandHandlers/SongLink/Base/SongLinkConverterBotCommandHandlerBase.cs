@@ -3,7 +3,7 @@ using Polyphonic.TelegramBot.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Polyphonic.TelegramBot.CommandHandlers.SongLink.Base;
+namespace Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink.Base;
 
 internal class SongLinkConverterBotCommandHandlerBase
 {
@@ -11,16 +11,15 @@ internal class SongLinkConverterBotCommandHandlerBase
 	
 	protected async Task<(bool HasValidSongShareLink, Uri SongShareLink)> TryGetSongShareLinkFromCommand(
 		ITelegramBotClient botClient,
-		Message message,
+		User user,
 		ParsedBotCommand command,
+		bool isSendErrorMessagesToChat,
 		CancellationToken cancellationToken)
 	{
-		var (_, sender) = message.GetSender();
-		
-		if (command.CommandArgumentsString is null or {Length: 0})
+		if (isSendErrorMessagesToChat && command.CommandArgumentsString is null or {Length: 0})
 		{
 			await botClient.SendTextMessageAsync(
-				sender.Id,
+				user.Id,
 				"Get song link command must be followed by an song share url string",
 				cancellationToken: cancellationToken);
 
@@ -29,10 +28,13 @@ internal class SongLinkConverterBotCommandHandlerBase
 
 		if (!Uri.TryCreate(command.CommandArgumentsString, UriKind.Absolute, out var songShareLink))
 		{
-			await botClient.SendTextMessageAsync(
-				sender.Id,
-				$"Invalid song share url '{command.CommandArgumentsString}'",
-				cancellationToken: cancellationToken);
+			if (isSendErrorMessagesToChat)
+			{
+				await botClient.SendTextMessageAsync(
+					user.Id,
+					$"Invalid song share url '{command.CommandArgumentsString}'",
+					cancellationToken: cancellationToken);
+			}
 
 			return (false, _invalidShongShareLink);
 		}

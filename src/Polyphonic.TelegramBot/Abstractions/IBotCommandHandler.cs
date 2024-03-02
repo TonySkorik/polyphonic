@@ -39,7 +39,13 @@ internal interface IBotCommandHandler
 		return new ParsedBotCommand(true, command, commandArguments.Trim());
 	}
 	
-	public bool CanHandle(ParsedBotCommand command);
+	public (bool CanHandleInMessage, bool CanHandleInline) CanHandle(ParsedBotCommand command);
 
 	public Task HandleAsync(ITelegramBotClient botClient, Message message, ParsedBotCommand command, CancellationToken cancellationToken);
+
+	public Task HandleAsync(
+		ITelegramBotClient botClient,
+		InlineQuery inlineQuery,
+		ParsedBotCommand command,
+		CancellationToken cancellationToken);
 }

@@ -14,11 +14,11 @@ namespace Songlink.Client;
 
 public class SongLinkClient
 {
-    private readonly RestClient _restClient;
-
     private const string GET_SONG_LINKS_RESOURCE = "v1-alpha.1/links";
 
-    private static readonly JsonSerializerOptions _serializerOptions =
+    private readonly Func<RestClient> _createClient;
+
+    private JsonSerializerOptions GetDefaultSerializerOptions() =>
         new(JsonSerializerDefaults.Web)
         {
             Converters = {new JsonStringEnumConverter(allowIntegerValues: true)}
@@ -30,25 +30,32 @@ public class SongLinkClient
     {
         // TODO: add getting api key form configurationProvider
 
-        var httpClient = httpClientFactory.CreateClient(SonglinkClientConfiguration.SonglinkHttpClientName);
-
-        _restClient = new RestClient(
-            httpClient,
-            configureSerialization: s => s.UseSystemTextJson(_serializerOptions)
-        );
+        _createClient = () =>
+        {
+            var httpClient = httpClientFactory.CreateClient(SonglinkClientConfiguration.SonglinkHttpClientName);
+            
+            return new RestClient(
+                httpClient,
+                configureSerialization: s => s.UseSystemTextJson(GetDefaultSerializerOptions())
+            );
+        };
     }
 
     public SongLinkClient(string apiUrl, string? apiKey = null)
     {
-        var restClientOptions = new RestClientOptions()
+        _createClient = () =>
         {
-            BaseUrl = new Uri(apiUrl)
+            var restClientOptions = new RestClientOptions()
+            {
+                BaseUrl = new Uri(apiUrl)
+            };
+
+            return new RestClient(
+                restClientOptions,
+                configureSerialization: s => s.UseSystemTextJson(
+                    GetDefaultSerializerOptions())
+            );
         };
-        
-        _restClient = new RestClient(
-            restClientOptions,
-            configureSerialization: s => s.UseSystemTextJson(_serializerOptions)
-        );
     }
 
     public Task<SongLinkResponse> GetAllSongLinksAsync(
@@ -84,7 +91,9 @@ public class SongLinkClient
         CancellationToken cancellationToken)
         where TResponse : SongLinkResponseBase
     {
-        var response = await _restClient.ExecuteAsync<TResponse>(request, cancellationToken);
+        using var restClient = _createClient();
+        
+        var response = await restClient.ExecuteAsync<TResponse>(request, cancellationToken);
 
         if (response.IsSuccessful)
         {

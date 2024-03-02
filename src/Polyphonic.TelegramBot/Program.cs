@@ -3,9 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polyphonic.TelegramBot.Abstractions;
-using Polyphonic.TelegramBot.CommandHandlers;
-using Polyphonic.TelegramBot.CommandHandlers.SongLink;
 using Polyphonic.TelegramBot.Configuration;
+using Polyphonic.TelegramBot.Handlers;
+using Polyphonic.TelegramBot.Handlers.CommandHandlers;
+using Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink;
 using Polyphonic.TelegramBot.Infrastructure;
 
 using Serilog;
@@ -35,23 +36,29 @@ public class Program
         builder.Services.AddSingleton(configuration);
         builder.Services.AddSingleton<IExceptionParser, BotExceptionsParser>();
         builder.Services.AddSingleton<IUpdateHandler, BotUpdateHandler>();
-        builder.Services.AddSingleton<PolyphonicTelegramBot>();
+        
         builder.Services.AddHttpClient(
             SonglinkClientConfiguration.SonglinkHttpClientName,
             client =>
             {
                 client.BaseAddress = new Uri(configuration.GetSection("BotConfiguration:SongLinkApiUrl").Value!);
             });
-        builder.Services.AddSingleton<SongLinkClient>();
+        builder.Services.AddTransient<SongLinkClient>();
 
         builder.Services.Configure<BotConfiguration>(configuration.GetSection(nameof(BotConfiguration)));
         builder.Services.AddHostedService<PolyphonicTelegramBot>();
+
+        builder.Services.AddMemoryCache();
         
         // bot command handlers
+        
+        builder.Services.AddTransient<IBotCommandHandler, ConvertToUniversalSongLinkBotCommandHandler>();
+        builder.Services.AddTransient<IBotCommandHandler, ConvertToSpecifiedSongLinkBotCommandHandler>();
+        builder.Services.AddTransient<IBotCommandHandler, GetMainMenuBotCommandHandler>();
+        
+        // bot query handlers
 
-        builder.Services.AddSingleton<IBotCommandHandler, ConvertToUniversalSongLinkBotCommandHandler>();
-        builder.Services.AddSingleton<IBotCommandHandler, ConvertToSpecifiedSongLinkBotCommandHandler>();
-        builder.Services.AddSingleton<IBotCommandHandler, GetMainMenuBotCommandHandler>();
+        builder.Services.AddTransient<IBotInlineQueryHandler, BotInlineQueryHandler>();
 
         AddLogger(builder.Services);
 
@@ -68,7 +75,7 @@ public class Program
 
         Serilog.ILogger logger = new LoggerConfiguration()
             .WriteTo.Console()
-            .MinimumLevel.Is(LogEventLevel.Verbose)
+            .MinimumLevel.Is(LogEventLevel.Debug)
             .CreateLogger();
 
         IMicrosoftLoggerAlias microsoftLogger = new SerilogLoggerFactory(logger)
@@ -81,7 +88,7 @@ public class Program
         services.AddLogging(
             builder => builder.ClearProviders()
                 .AddSerilog(logger)
-                .SetMinimumLevel(LogLevel.Trace)
+                .SetMinimumLevel(LogLevel.Debug)
         );
 
         services.AddSingleton(microsoftLogger);

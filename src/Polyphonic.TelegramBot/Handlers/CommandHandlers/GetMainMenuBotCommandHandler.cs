@@ -1,13 +1,14 @@
-﻿using Polyphonic.TelegramBot.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Polyphonic.TelegramBot.Abstractions;
 using Polyphonic.TelegramBot.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Polyphonic.TelegramBot.CommandHandlers;
+namespace Polyphonic.TelegramBot.Handlers.CommandHandlers;
 
-internal class GetMainMenuBotCommandHandler : IBotCommandHandler
+internal class GetMainMenuBotCommandHandler(ILogger<GetMainMenuBotCommandHandler> logger) : IBotCommandHandler
 {
 	private const string BOT_MAIN_MENU_MESSAGE = "<b>Bot menu</b>\n\nFollowing is the bot main menu.";
 	
@@ -32,8 +33,10 @@ internal class GetMainMenuBotCommandHandler : IBotCommandHandler
 			// }
 		}
 	);
-	
-	public bool CanHandle(ParsedBotCommand command) => command.CommandName == "menu";
+
+	public (bool CanHandleInMessage, bool CanHandleInline) CanHandle(ParsedBotCommand command) 
+		=>
+			(command.CommandName == "menu", false);
 
 	public async Task HandleAsync(
 		ITelegramBotClient botClient,
@@ -47,5 +50,19 @@ internal class GetMainMenuBotCommandHandler : IBotCommandHandler
 			(int) ParseMode.Html,
 			replyMarkup: _botMainMenuMarkup,
 			cancellationToken: cancellationToken);
+	}
+
+	public Task HandleAsync(
+		ITelegramBotClient botClient,
+		InlineQuery inlineQuery,
+		ParsedBotCommand command,
+		CancellationToken cancellationToken)
+	{
+		logger.LogInformation(
+			"An inline query was issued to handler {HandlerName}. Handler can't handle inline queries",
+			nameof(
+				GetMainMenuBotCommandHandler));
+		
+		return Task.CompletedTask;
 	}
 }

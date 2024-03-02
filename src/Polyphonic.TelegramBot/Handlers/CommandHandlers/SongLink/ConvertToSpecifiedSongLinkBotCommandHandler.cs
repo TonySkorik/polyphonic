@@ -1,5 +1,6 @@
-﻿using Polyphonic.TelegramBot.Abstractions;
-using Polyphonic.TelegramBot.CommandHandlers.SongLink.Base;
+﻿using Microsoft.Extensions.Logging;
+using Polyphonic.TelegramBot.Abstractions;
+using Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink.Base;
 using Polyphonic.TelegramBot.Helpers;
 using Polyphonic.TelegramBot.Model;
 using Songlink.Client;
@@ -7,19 +8,23 @@ using Songlink.Client.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Polyphonic.TelegramBot.CommandHandlers.SongLink;
+namespace Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink;
 
-internal class ConvertToSpecifiedSongLinkBotCommandHandler(SongLinkClient songLinkClient) : 
-	SongLinkConverterBotCommandHandlerBase, IBotCommandHandler
+internal class ConvertToSpecifiedSongLinkBotCommandHandler(
+	SongLinkClient songLinkClient,
+	ILogger<ConvertToSpecifiedSongLinkBotCommandHandler> logger
+) : SongLinkConverterBotCommandHandlerBase, IBotCommandHandler
 {
-	private readonly HashSet<string> _supportedCommands =
+	private static readonly HashSet<string> _supportedCommands =
 	[
 		"toyandex",
 		"tospotify",
 		"toyoutube"
 	];
 
-	public bool CanHandle(ParsedBotCommand command) => _supportedCommands.Contains(command.CommandName); 
+	public (bool CanHandleInMessage, bool CanHandleInline) CanHandle(ParsedBotCommand command)
+		=>
+			(_supportedCommands.Contains(command.CommandName), false);
 
 	public async Task HandleAsync(
 		ITelegramBotClient botClient,
@@ -30,7 +35,12 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(SongLinkClient songLi
 		var (_, sender) = message.GetSender();
 
 		var (hasValidShongShareLink, songShareLink) =
-			await TryGetSongShareLinkFromCommand(botClient, message, command, cancellationToken);
+			await TryGetSongShareLinkFromCommand(
+				botClient,
+				sender,
+				command,
+				isSendErrorMessagesToChat: false,
+				cancellationToken);
 
 		if (!hasValidShongShareLink)
 		{
@@ -51,7 +61,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(SongLinkClient songLi
 				sender.Id,
 				"Unknown target song link platform. Check command name.",
 				cancellationToken: cancellationToken);
-			
+
 			return;
 		}
 
@@ -59,11 +69,26 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(SongLinkClient songLi
 			sender.Id,
 			$"Getting {targetMusicPlatform} song share link, please wait...",
 			cancellationToken: cancellationToken);
-		
+
 		try
 		{
 			var allSongLinksResponse =
 				await songLinkClient.GetAllSongLinksAsync(songShareLink, cancellationToken);
+
+			if (allSongLinksResponse.IsSuccess || allSongLinksResponse.LinksByPlatform is {Count: 0})
+			{
+				logger.LogInformation(
+					"Failed to get {TargetMusicPlatform} song share link, for {SongShareLink}'",
+					targetMusicPlatform,
+					command.CommandArgumentsString);
+
+				await botClient.SendTextMessageAsync(
+					sender.Id,
+					$"Can't get {targetMusicPlatform} song share link, for {command.CommandArgumentsString}",
+					cancellationToken: cancellationToken);
+
+				return;
+			}
 
 			if (!allSongLinksResponse.LinksByPlatform.TryGetValue(targetMusicPlatform, out var targetPlatformSongLinks))
 			{
@@ -71,10 +96,10 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(SongLinkClient songLi
 					sender.Id,
 					$"No share link for platform {targetMusicPlatform} found.",
 					cancellationToken: cancellationToken);
-				
+
 				return;
 			}
-			
+
 			await botClient.SendTextMessageAsync(
 				sender.Id,
 				targetPlatformSongLinks.Url,
@@ -87,5 +112,19 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(SongLinkClient songLi
 				$"Error getting universal song link : {ex.Message}",
 				cancellationToken: cancellationToken);
 		}
+	}
+
+	public Task HandleAsync(
+		ITelegramBotClient botClient,
+		InlineQuery inlineQuery,
+		ParsedBotCommand command,
+		CancellationToken cancellationToken)
+	{
+		logger.LogInformation(
+			"An inline query was issued to handler {HandlerName}. Handler can't handle inline queries",
+			nameof(
+				ConvertToSpecifiedSongLinkBotCommandHandler));
+
+		return Task.CompletedTask;
 	}
 }
