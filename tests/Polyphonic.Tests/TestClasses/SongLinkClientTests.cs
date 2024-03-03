@@ -22,7 +22,7 @@ internal class SongLinkClientTests
             CancellationToken.None);
 
         response.IsSuccess.Should().BeFalse();
-        response.ErrorMessage.Should().Contain("404");
+        response.ErrorMessage.Should().Contain("400").And.Contain("could_not_fetch_entity_data");
     }
 
     [Test]
