@@ -23,8 +23,7 @@ public class Program
     {
         IHostBuilder builder = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration(
-                c =>
-                    c.AddEnvironmentVariables("Polyphonic_")
+                c => c.AddEnvironmentVariables("Polyphonic_")
             )
             .ConfigureServices((ctx, services) => {
                 services.Configure<BotConfiguration>(ctx.Configuration.GetSection(nameof(BotConfiguration)));
