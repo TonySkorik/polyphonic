@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Polyphonic.Tests", "tests\Polyphonic.Tests\Polyphonic.Tests.csproj", "{5909A916-81E1-48A8-B502-C2AE73CD65C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0. Libraries", "0. Libraries", "{043A5AF7-6ACB-460F-9053-CF031AD36CF7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Apps", "1. Apps", "{53E7D436-7F3C-44D5-8081-909A5F6A7F4B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Polyphonic.TelegramBot", "src\Polyphonic.TelegramBot\Polyphonic.TelegramBot.csproj", "{0EF753B2-E5E5-4A6E-871C-0ADE8F383311}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Songlink.Client", "src\Songlink.Client\Songlink.Client.csproj", "{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{74521EB3-79A1-467C-A564-7F1FB8E31B2A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5909A916-81E1-48A8-B502-C2AE73CD65C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5909A916-81E1-48A8-B502-C2AE73CD65C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5909A916-81E1-48A8-B502-C2AE73CD65C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5909A916-81E1-48A8-B502-C2AE73CD65C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EF753B2-E5E5-4A6E-871C-0ADE8F383311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EF753B2-E5E5-4A6E-871C-0ADE8F383311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EF753B2-E5E5-4A6E-871C-0ADE8F383311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EF753B2-E5E5-4A6E-871C-0ADE8F383311}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0EF753B2-E5E5-4A6E-871C-0ADE8F383311} = {53E7D436-7F3C-44D5-8081-909A5F6A7F4B}
+		{0D6FCDAD-0054-42B2-9DD7-EF4C735F9E19} = {043A5AF7-6ACB-460F-9053-CF031AD36CF7}
+		{5909A916-81E1-48A8-B502-C2AE73CD65C7} = {74521EB3-79A1-467C-A564-7F1FB8E31B2A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B900084D-B56E-49D6-8F49-63DAFB66A447}
+	EndGlobalSection
+EndGlobal
