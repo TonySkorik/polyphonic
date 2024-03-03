@@ -13,16 +13,6 @@ internal class BotUpdateHandler(
     IServiceProvider serviceProvider,
     ILogger<BotUpdateHandler> logger) : IUpdateHandler
 {
-    public Task HandlePollingErrorAsync(
-        ITelegramBotClient botClient,
-        Exception exception,
-        CancellationToken cancellationToken)
-    {
-        logger.LogError(exception, "Exception happened during bot API polling");
-
-        return Task.CompletedTask;
-    }
-
     public async Task HandleUpdateAsync(
         ITelegramBotClient botClient,
         Update update,
@@ -52,6 +42,16 @@ internal class BotUpdateHandler(
                 break;
             }
         }
+    }
+
+    public Task HandlePollingErrorAsync(
+        ITelegramBotClient botClient,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        logger.LogError(exception, "Exception happened during bot API polling");
+
+        return Task.CompletedTask;
     }
 
     private async Task HandleMessage(

@@ -8,6 +8,7 @@ using Polyphonic.TelegramBot.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
+using Telegram.Bot.Types.Enums;
 
 namespace Polyphonic.TelegramBot;
 
@@ -53,11 +54,19 @@ internal class PolyphonicTelegramBot : IHostedService
     private void StartBotCore()
     {
         var handler = _serviceProvider.GetRequiredService<IUpdateHandler>();
+
+        // TODO: filter out only logic-related updates
+        ReceiverOptions receiverOptions = new()
+        {
+            // receive all update types except ChatMember related updates
+            // AllowedUpdates = Array.Empty<UpdateType>() 
+        };
         
         // this is a non-blocking call
         _bot.StartReceiving(
             handler,
             cancellationToken: _killswitch.Token
+            // ,receiverOptions: receiverOptions
         );
         
         _logger.LogInformation("Started listening for updates");
