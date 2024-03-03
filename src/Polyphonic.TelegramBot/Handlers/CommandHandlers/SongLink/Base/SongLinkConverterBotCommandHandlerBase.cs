@@ -1,5 +1,4 @@
-﻿using Polyphonic.TelegramBot.Helpers;
-using Polyphonic.TelegramBot.Model;
+﻿using Polyphonic.TelegramBot.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 

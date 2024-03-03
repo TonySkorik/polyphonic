@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Polyphonic.TelegramBot.Abstractions;
 using Polyphonic.TelegramBot.Helpers;
 using Telegram.Bot;
@@ -9,18 +10,15 @@ using Telegram.Bot.Types.Enums;
 namespace Polyphonic.TelegramBot.Infrastructure;
 
 internal class BotUpdateHandler(
-    IEnumerable<IBotCommandHandler> commandHandlers,
-    IBotInlineQueryHandler inlineQueryHandler,
+    IServiceProvider serviceProvider,
     ILogger<BotUpdateHandler> logger) : IUpdateHandler
 {
-    private readonly ILogger _logger = logger;
-
     public Task HandlePollingErrorAsync(
         ITelegramBotClient botClient,
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Exception happened during bot API polling");
+        logger.LogError(exception, "Exception happened during bot API polling");
 
         return Task.CompletedTask;
     }
@@ -44,8 +42,15 @@ internal class BotUpdateHandler(
             
             // An inline query was received
             case UpdateType.InlineQuery:
+            { 
+                // braces to make using declaration work
+                
+                using var serviceScope = serviceProvider.CreateScope();
+                var inlineQueryHandler = serviceScope.ServiceProvider.GetRequiredService<IBotInlineQueryHandler>();
+                
                 await inlineQueryHandler.HandleAsync(botClient, update.InlineQuery!, cancellationToken);
                 break;
+            }
         }
     }
 
@@ -59,19 +64,19 @@ internal class BotUpdateHandler(
 
         if (!hasSender)
         {
-            _logger.LogError("Can't handle message. User Id is null");
+            logger.LogError("Can't handle message. User Id is null");
             
             return;
         }
 
         if (!hasMessageText)
         {
-            _logger.LogError("Can't handle message. Message text is null");
+            logger.LogError("Can't handle message. Message text is null");
 
             return;
         }
         
-        _logger.LogInformation("{UserName} wrote {MessageText}", sender.FirstName, messageText);
+        logger.LogInformation("{UserName} wrote {MessageText}", sender.FirstName, messageText);
         
         if (IBotCommandHandler.IsCommand(messageText))
         {
@@ -104,6 +109,11 @@ internal class BotUpdateHandler(
                 $"Invalid command '{parsedCommand.CommandName}'. Command format : '/<command_name> [argument_1] ... [argument_n]'",
                 cancellationToken: cancellationToken);
         }
+
+        using var serviceScope = serviceProvider.CreateScope();
+
+        var commandHandlers = 
+            serviceScope.ServiceProvider.GetServices<IBotCommandHandler>();
 
         foreach (var commandHandler in commandHandlers)
         {

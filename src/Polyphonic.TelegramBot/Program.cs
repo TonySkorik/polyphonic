@@ -33,9 +33,18 @@ public class Program
 
         HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
+        builder.Services.Configure<BotConfiguration>(configuration.GetSection(nameof(BotConfiguration)));
+        
         builder.Services.AddSingleton(configuration);
+        
         builder.Services.AddSingleton<IExceptionParser, BotExceptionsParser>();
         builder.Services.AddSingleton<IUpdateHandler, BotUpdateHandler>();
+        
+        builder.Services.AddHostedService<PolyphonicTelegramBot>();
+
+        builder.Services.AddMemoryCache();
+
+        // add songlink client
         
         builder.Services.AddHttpClient(
             SonglinkClientConfiguration.SonglinkHttpClientName,
@@ -44,11 +53,6 @@ public class Program
                 client.BaseAddress = new Uri(configuration.GetSection("BotConfiguration:SongLinkApiUrl").Value!);
             });
         builder.Services.AddTransient<SongLinkClient>();
-
-        builder.Services.Configure<BotConfiguration>(configuration.GetSection(nameof(BotConfiguration)));
-        builder.Services.AddHostedService<PolyphonicTelegramBot>();
-
-        builder.Services.AddMemoryCache();
         
         // bot command handlers
         

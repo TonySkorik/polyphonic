@@ -1,63 +1,52 @@
-﻿using Microsoft.Extensions.Logging;
-using Polyphonic.TelegramBot.Abstractions;
+﻿using Polyphonic.TelegramBot.Abstractions;
 using Polyphonic.TelegramBot.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace Polyphonic.TelegramBot.Handlers;
 
-internal class BotInlineQueryHandler(
-	IEnumerable<IBotCommandHandler> commandHandlers, 
-	ILogger<BotInlineQueryHandler> logger) : IBotInlineQueryHandler
+internal class BotInlineQueryHandler(IEnumerable<IBotCommandHandler> commandHandlers) : IBotInlineQueryHandler
 {
 	public async Task HandleAsync(ITelegramBotClient botClient, InlineQuery query, CancellationToken cancellationToken)
 	{
 		var queryString = query.Query;
-
+		
 		bool isCommandQuery = IBotCommandHandler.IsCommand(queryString);
 
+		ParsedBotCommand? botCommandFromQuery;
+		
 		if (isCommandQuery)
 		{
-			var parsedCommand = IBotCommandHandler.ParseCommand(queryString);
+			botCommandFromQuery = IBotCommandHandler.ParseCommand(queryString);
 
-			if (!parsedCommand.IsCommandValid)
+			if (!botCommandFromQuery.IsCommandValid)
 			{
 				return;
 			}
-
-			foreach (var commandHandler in commandHandlers)
+		}
+		else
+		{
+			// means this is not a command query - check if the query is Uri
+			if (!Uri.IsWellFormedUriString(queryString, UriKind.Absolute))
 			{
-				if (!commandHandler.CanHandle(parsedCommand).CanHandleInline)
-				{
-					continue;
-				}
-
-				await commandHandler.HandleAsync(botClient, query, parsedCommand, cancellationToken);
-
+				// not command and not URI - return
 				return;
 			}
+			
+			// not a command but URI - issue and handle "convert" command 
+			botCommandFromQuery = new ParsedBotCommand(true, "convert", queryString);
 		}
 		
-		// means this is not a command query - check if the query is Uri
-
-		if (!Uri.TryCreate(queryString, UriKind.Absolute, out _))
-		{ 
-			return;
-		}
-		
-		// means we get an uri - issue and handle "convert" command 
-		var convertConmmand = new ParsedBotCommand(true, "convert", queryString);
-		
-		//TODO : refactor this into something more elegant
+		// handle created command
 		
 		foreach (var commandHandler in commandHandlers)
 		{
-			if (!commandHandler.CanHandle(convertConmmand).CanHandleInline)
+			if (!commandHandler.CanHandle(botCommandFromQuery).CanHandleInline)
 			{
 				continue;
 			}
 
-			await commandHandler.HandleAsync(botClient, query, convertConmmand, cancellationToken);
+			await commandHandler.HandleAsync(botClient, query, botCommandFromQuery, cancellationToken);
 
 			return;
 		}

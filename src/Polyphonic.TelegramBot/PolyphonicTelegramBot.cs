@@ -18,18 +18,24 @@ internal class PolyphonicTelegramBot(
 {
     private readonly BotConfiguration _botConfiguration = options.Value;
     private readonly CancellationTokenSource _killswitch = new();
+    private readonly TaskCompletionSource _mainThreadBlocker = new();
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        return StartBotAsync();
+        // this is a blocking call
+        StartBotCore();
+        
+        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        _mainThreadBlocker.SetResult();
+        
         await _killswitch.CancelAsync();
     }
 
-    private Task StartBotAsync()
+    private void StartBotCore()
     {
         var handler = serviceProvider.GetRequiredService<IUpdateHandler>();
         var exceptionsParser = serviceProvider.GetRequiredService<IExceptionParser>();
@@ -38,19 +44,17 @@ internal class PolyphonicTelegramBot(
             ExceptionsParser = exceptionsParser
         };
         
+        // this is a non-blocking call
         bot.StartReceiving(
             handler,
             cancellationToken: _killswitch.Token
         );
 
-        // Tell the user the bot is online
         logger.LogInformation("Started listening for updates");
 
-#if DEBUG
-        Console.ReadLine();
+        // block the thread to keep the console app from closing
+        _mainThreadBlocker.Task.Wait();
+        
         _killswitch.Cancel();
-#endif
-
-        return Task.CompletedTask;
     }
 }
