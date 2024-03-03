@@ -10,14 +10,10 @@ using Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink;
 using Polyphonic.TelegramBot.Infrastructure;
 
 using Serilog;
-using Serilog.Events;
-using Serilog.Extensions.Logging;
 using Songlink.Client;
 using Songlink.Client.Configuration;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
-
-using IMicrosoftLoggerAlias = Microsoft.Extensions.Logging.ILogger;
 
 namespace Polyphonic.TelegramBot;
 
@@ -25,76 +21,52 @@ public class Program
 {
     public static async Task Main(params string[]? args)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .AddEnvironmentVariables("Polyphonic_")
-            .Build();
+        IHostBuilder builder = Host.CreateDefaultBuilder(args)
+            .ConfigureAppConfiguration(
+                c =>
+                    c.AddEnvironmentVariables("Polyphonic_")
+            )
+            .ConfigureServices((ctx, services) => {
+                services.Configure<BotConfiguration>(ctx.Configuration.GetSection(nameof(BotConfiguration)));
 
-        HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+                services.AddSingleton<IExceptionParser, BotExceptionsParser>();
+                services.AddSingleton<IUpdateHandler, BotUpdateHandler>();
 
-        builder.Services.Configure<BotConfiguration>(configuration.GetSection(nameof(BotConfiguration)));
-        
-        builder.Services.AddSingleton(configuration);
-        
-        builder.Services.AddSingleton<IExceptionParser, BotExceptionsParser>();
-        builder.Services.AddSingleton<IUpdateHandler, BotUpdateHandler>();
-        
-        builder.Services.AddHostedService<PolyphonicTelegramBot>();
+                services.AddHostedService<PolyphonicTelegramBot>();
 
-        builder.Services.AddMemoryCache();
+                services.AddMemoryCache();
 
-        // add songlink client
-        
-        builder.Services.AddHttpClient(
-            SonglinkClientConfiguration.SonglinkHttpClientName,
-            client =>
-            {
-                client.BaseAddress = new Uri(configuration.GetSection("BotConfiguration:SongLinkApiUrl").Value!);
+                // add songlink client
+
+                services.AddHttpClient(
+                    SonglinkClientConfiguration.SonglinkHttpClientName,
+                    client =>
+                    {
+                        client.BaseAddress =
+                            new Uri(ctx.Configuration.GetSection("BotConfiguration:SongLinkApiUrl").Value!);
+                    });
+                services.AddTransient<SongLinkClient>();
+
+                // bot command handlers
+
+                services.AddTransient<IBotCommandHandler, ConvertToUniversalSongLinkBotCommandHandler>();
+                services.AddTransient<IBotCommandHandler, ConvertToSpecifiedSongLinkBotCommandHandler>();
+                services.AddTransient<IBotCommandHandler, GetMainMenuBotCommandHandler>();
+
+                // bot query handlers
+
+                services.AddTransient<IBotInlineQueryHandler, BotInlineQueryHandler>();
+            })
+            .ConfigureLogging((ctx, lc) => {
+                Serilog.ILogger logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(ctx.Configuration)
+                    .CreateLogger();
+
+                lc.ClearProviders().AddSerilog(logger);
             });
-        builder.Services.AddTransient<SongLinkClient>();
         
-        // bot command handlers
-        
-        builder.Services.AddTransient<IBotCommandHandler, ConvertToUniversalSongLinkBotCommandHandler>();
-        builder.Services.AddTransient<IBotCommandHandler, ConvertToSpecifiedSongLinkBotCommandHandler>();
-        builder.Services.AddTransient<IBotCommandHandler, GetMainMenuBotCommandHandler>();
-        
-        // bot query handlers
-
-        builder.Services.AddTransient<IBotInlineQueryHandler, BotInlineQueryHandler>();
-
-        AddLogger(builder.Services);
-
         using IHost host = builder.Build();
 
-        await host.StartAsync();
-    }
-
-    private static void AddLogger(IServiceCollection services)
-    {
-        //LogEventLevel minimumEventLevel = IsCiEnvironment
-        //    ? LogEventLevel.Information
-        //    : LogEventLevel.Verbose;
-
-        Serilog.ILogger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .MinimumLevel.Is(LogEventLevel.Debug)
-            .CreateLogger();
-
-        IMicrosoftLoggerAlias microsoftLogger = new SerilogLoggerFactory(logger)
-            .CreateLogger<Program>();
-
-        //LogLevel minimumMsLoggerLevel = IsCiEnvironment
-        //    ? LogLevel.Information
-        //    : LogLevel.Trace;
-
-        services.AddLogging(
-            builder => builder.ClearProviders()
-                .AddSerilog(logger)
-                .SetMinimumLevel(LogLevel.Debug)
-        );
-
-        services.AddSingleton(microsoftLogger);
+        await host.RunAsync();
     }
 }
