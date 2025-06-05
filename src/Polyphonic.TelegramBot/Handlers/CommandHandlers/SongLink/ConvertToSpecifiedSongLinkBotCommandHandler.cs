@@ -34,7 +34,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 	{
 		var (_, sender) = message.GetSender();
 
-		var (hasValidShongShareLink, songShareLink) =
+		var (hasValidSongShareLink, songShareLink) =
 			await TryGetSongShareLinkFromCommand(
 				botClient,
 				sender,
@@ -42,7 +42,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 				isSendErrorMessagesToChat: false,
 				cancellationToken);
 
-		if (!hasValidShongShareLink)
+		if (!hasValidSongShareLink)
 		{
 			return;
 		}

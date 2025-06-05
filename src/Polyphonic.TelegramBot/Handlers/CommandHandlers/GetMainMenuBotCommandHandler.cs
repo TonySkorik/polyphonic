@@ -20,18 +20,16 @@ internal class GetMainMenuBotCommandHandler(ILogger<GetMainMenuBotCommandHandler
 		new(InlineKeyboardButton.WithCallbackData(MAIN_MENU_BUTTON));
 
 	private readonly InlineKeyboardMarkup _botMainMenuMarkup = new(
-		new[]
-		{
-			new[]
-			{
+		[
+			[
 				InlineKeyboardButton.WithCallbackData(GET_SONG_LINK_BUTTON)
-			}
+			]
 			// ,
 			// new[]
 			// {
 			//     InlineKeyboardButton.WithUrl(TUTORIAL_BUTTON, "https://core.telegram.org/bots/tutorial")
 			// }
-		}
+		]
 	);
 
 	public (bool CanHandleInMessage, bool CanHandleInline) CanHandle(ParsedBotCommand command) 

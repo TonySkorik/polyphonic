@@ -8,7 +8,6 @@ using Polyphonic.TelegramBot.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Types.Enums;
 
 namespace Polyphonic.TelegramBot;
 
@@ -46,7 +45,7 @@ internal class PolyphonicTelegramBot : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Stoppping hosted service '{nameof(PolyphonicTelegramBot)}'");
+        _logger.LogInformation($"Stopping hosted service '{nameof(PolyphonicTelegramBot)}'");
 
         await _killswitch.CancelAsync();
     }

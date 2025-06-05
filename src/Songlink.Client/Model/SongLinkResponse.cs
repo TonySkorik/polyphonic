@@ -144,7 +144,7 @@ public class SongLinkResponse : SongLinkResponseBase
     /// only if there is a match found. E.g. if there is no YouTube match found,
     /// then neither `youtube` or `youtubeMusic` properties will exist here.
     /// </summary>
-    public required Dictionary<SongLinkPlatform, PlatformSongLinks> LinksByPlatform { set; get; }
+    public required Dictionary<SongLinkPlatform, PlatformSongLinks>? LinksByPlatform { set; get; }
 
     /// <summary>
     /// A collection of objects. Each key is a unique identifier for a streaming

@@ -6,7 +6,7 @@ namespace Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink.Base;
 
 internal class SongLinkConverterBotCommandHandlerBase
 {
-	private static readonly Uri _invalidShongShareLink = new("https://polyphonic.com/invalid-song-link-url");
+	private static readonly Uri _invalidSongShareLink = new("https://polyphonic.com/invalid-song-link-url");
 	
 	protected async Task<(bool HasValidSongShareLink, Uri SongShareLink)> TryGetSongShareLinkFromCommand(
 		ITelegramBotClient botClient,
@@ -22,7 +22,7 @@ internal class SongLinkConverterBotCommandHandlerBase
 				"Get song link command must be followed by an song share url string",
 				cancellationToken: cancellationToken);
 
-			return (false, _invalidShongShareLink);
+			return (false, _invalidSongShareLink);
 		}
 
 		if (!Uri.TryCreate(command.CommandArgumentsString, UriKind.Absolute, out var songShareLink))
@@ -35,7 +35,7 @@ internal class SongLinkConverterBotCommandHandlerBase
 					cancellationToken: cancellationToken);
 			}
 
-			return (false, _invalidShongShareLink);
+			return (false, _invalidSongShareLink);
 		}
 		
 		return (true, songShareLink);

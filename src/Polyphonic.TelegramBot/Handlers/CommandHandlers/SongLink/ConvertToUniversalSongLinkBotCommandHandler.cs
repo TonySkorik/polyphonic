@@ -27,7 +27,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
     {
         var (_, sender) = message.GetSender();
 
-        var (hasValidShongShareLink, songShareLink) =
+        var (hasValidSongShareLink, songShareLink) =
             await TryGetSongShareLinkFromCommand(
                 botClient,
                 sender,
@@ -35,7 +35,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
                 isSendErrorMessagesToChat: false,
                 cancellationToken);
 
-        if (!hasValidShongShareLink)
+        if (!hasValidSongShareLink)
         {
             return;
         }
@@ -84,7 +84,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
         ParsedBotCommand command,
         CancellationToken cancellationToken)
     {
-        var (hasValidShongShareLink, songShareLink) =
+        var (hasValidSongShareLink, songShareLink) =
             await TryGetSongShareLinkFromCommand(
                 botClient,
                 inlineQuery.From,
@@ -92,7 +92,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
                 isSendErrorMessagesToChat: false,
                 cancellationToken);
 
-        if (!hasValidShongShareLink)
+        if (!hasValidSongShareLink)
         {
             return;
         }
@@ -102,8 +102,16 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
             var allSongLinksResponse =
                 await songLinkClient.GetAllSongLinksAsync(songShareLink, cancellationToken);
 
-            if (!allSongLinksResponse.IsSuccess || allSongLinksResponse.LinksByPlatform is {Count: 0})
+            if (!allSongLinksResponse.IsSuccess 
+                || allSongLinksResponse.LinksByPlatform is null)
             { 
+                logger.LogInformation(
+                    "Failed to get universal song share link, for '{SongShareLink}'. Songlink API response is success: {ApiResponseIsSuccess}, platform dictionary is empty: {PlatformCount}",
+                    inlineQuery.Query,
+                    allSongLinksResponse.IsSuccess,
+                    allSongLinksResponse.LinksByPlatform is null
+                    );
+                
                 return;
             }
 
@@ -138,7 +146,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
         SongLinkResponse songLinkResponse,
         SongLinkPlatform targetPlatform)
     {
-        if (!songLinkResponse.LinksByPlatform.TryGetValue(targetPlatform, out var specificPlatformLink))
+        if (!songLinkResponse.LinksByPlatform!.TryGetValue(targetPlatform, out var specificPlatformLink))
         { 
             return;
         }
