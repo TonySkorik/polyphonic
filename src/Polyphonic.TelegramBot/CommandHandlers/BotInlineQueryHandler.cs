@@ -1,15 +1,25 @@
 ﻿using Polyphonic.TelegramBot.Abstractions;
+using Polyphonic.TelegramBot.CommandHandlers.SongLink;
 using Polyphonic.TelegramBot.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Polyphonic.TelegramBot.Handlers;
+namespace Polyphonic.TelegramBot.CommandHandlers;
 
 internal class BotInlineQueryHandler(IEnumerable<IBotCommandHandler> commandHandlers) : IBotInlineQueryHandler
 {
-	public async Task HandleAsync(ITelegramBotClient botClient, InlineQuery query, CancellationToken cancellationToken)
+    public async Task HandleAsync(
+        ITelegramBotClient botClient,
+        InlineQuery query,
+        CancellationToken cancellationToken)
 	{
 		var queryString = query.Query;
+
+		if (string.IsNullOrEmpty(queryString))
+		{
+			// This is a case when user started typing inline message and mentioned bot, but didn't paste any song shre string
+			return;
+		}
 		
 		bool isCommandQuery = IBotCommandHandler.IsCommand(queryString);
 
@@ -34,7 +44,7 @@ internal class BotInlineQueryHandler(IEnumerable<IBotCommandHandler> commandHand
 			}
 			
 			// not a command but URI - issue and handle "convert" command 
-			botCommandFromQuery = new ParsedBotCommand(true, "convert", queryString);
+			botCommandFromQuery = new ParsedBotCommand(true, ToUniversalSongLinkBotCommandHandler.COMMAND_NAME, queryString);
 		}
 		
 		// handle created command

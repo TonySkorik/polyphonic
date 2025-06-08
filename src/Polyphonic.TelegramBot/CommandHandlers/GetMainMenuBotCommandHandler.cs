@@ -6,7 +6,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Polyphonic.TelegramBot.Handlers.CommandHandlers;
+namespace Polyphonic.TelegramBot.CommandHandlers;
 
 internal class GetMainMenuBotCommandHandler(ILogger<GetMainMenuBotCommandHandler> logger) : IBotCommandHandler
 {

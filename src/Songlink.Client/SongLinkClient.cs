@@ -55,9 +55,8 @@ public class SongLinkClient : IDisposable
     public Task<SongLinkResponse> GetAllSongLinksAsync(
         Uri songShareUri,
         CancellationToken cancellationToken)
-    {
-        return GetAllSongLinksAsync(songShareUri.ToString(), cancellationToken);
-    }
+        =>
+            GetAllSongLinksAsync(songShareUri.ToString(), cancellationToken);
 
     public async Task<SongLinkResponse> GetAllSongLinksAsync(
         string songShareLink,
@@ -118,8 +117,5 @@ public class SongLinkClient : IDisposable
         return errorResponse;
     }
 
-    public void Dispose()
-    {
-        _restClient.Dispose();
-    }
+    public void Dispose() => _restClient.Dispose();
 }

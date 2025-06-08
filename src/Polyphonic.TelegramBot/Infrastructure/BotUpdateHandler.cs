@@ -29,7 +29,7 @@ internal class BotUpdateHandler(
             case UpdateType.CallbackQuery:
                 await HandleButtonClick(botClient, update.CallbackQuery!, cancellationToken);
                 break;
-            
+
             // An inline query was received
             case UpdateType.InlineQuery:
             { 
@@ -145,8 +145,11 @@ internal class BotUpdateHandler(
         CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
-        
+
+#pragma warning disable CS0162 // Unreachable code detected
         string text = string.Empty;
+#pragma warning restore CS0162 // Unreachable code detected
+
         //InlineKeyboardMarkup markup = new(Array.Empty<InlineKeyboardButton>());
 
         // if (query.Data == GET_SONG_LINK_BUTTON)

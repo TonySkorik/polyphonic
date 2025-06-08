@@ -11,22 +11,22 @@ using Telegram.Bot.Polling;
 
 namespace Polyphonic.TelegramBot;
 
-internal class PolyphonicTelegramBot : IHostedService
+internal class PolyphonicTelegramBotBackend : IHostedService
 {
     private readonly CancellationTokenSource _killswitch = new();
     private readonly TelegramBotClient _bot;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<PolyphonicTelegramBot> _logger;
+    private readonly ILogger<PolyphonicTelegramBotBackend> _logger;
 
-    public PolyphonicTelegramBot(
+    public PolyphonicTelegramBotBackend(
         IServiceProvider serviceProvider,
         IExceptionParser botExceptionParser,
         IOptions<BotConfiguration> options,
-        ILogger<PolyphonicTelegramBot> logger)
+        ILogger<PolyphonicTelegramBotBackend> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        
+
         var botConfiguration = options.Value;
 
         _bot = new TelegramBotClient(botConfiguration.BotAccessToken)
@@ -45,7 +45,7 @@ internal class PolyphonicTelegramBot : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Stopping hosted service '{nameof(PolyphonicTelegramBot)}'");
+        _logger.LogInformation($"Stopping hosted service '{nameof(PolyphonicTelegramBotBackend)}'");
 
         await _killswitch.CancelAsync();
     }

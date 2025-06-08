@@ -3,10 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polyphonic.TelegramBot.Abstractions;
+using Polyphonic.TelegramBot.CommandHandlers;
+using Polyphonic.TelegramBot.CommandHandlers.SongLink;
 using Polyphonic.TelegramBot.Configuration;
-using Polyphonic.TelegramBot.Handlers;
-using Polyphonic.TelegramBot.Handlers.CommandHandlers;
-using Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink;
 using Polyphonic.TelegramBot.Infrastructure;
 
 using Serilog;
@@ -31,7 +30,7 @@ public class Program
                 services.AddSingleton<IExceptionParser, BotExceptionsParser>();
                 services.AddSingleton<IUpdateHandler, BotUpdateHandler>();
 
-                services.AddHostedService<PolyphonicTelegramBot>();
+                services.AddHostedService<PolyphonicTelegramBotBackend>();
 
                 services.AddMemoryCache();
 
@@ -44,17 +43,18 @@ public class Program
                         client.BaseAddress =
                             new Uri(ctx.Configuration.GetSection("BotConfiguration:SongLinkApiUrl").Value!);
                     });
-                services.AddTransient<SongLinkClient>();
+
+                services.AddSingleton<SongLinkClient>();
 
                 // bot command handlers
 
-                services.AddTransient<IBotCommandHandler, ConvertToUniversalSongLinkBotCommandHandler>();
-                services.AddTransient<IBotCommandHandler, ConvertToSpecifiedSongLinkBotCommandHandler>();
-                services.AddTransient<IBotCommandHandler, GetMainMenuBotCommandHandler>();
+                services.AddSingleton<IBotCommandHandler, ToUniversalSongLinkBotCommandHandler>();
+                services.AddSingleton<IBotCommandHandler, ToSpecifiedSongLinkBotCommandHandler>();
+                services.AddSingleton<IBotCommandHandler, GetMainMenuBotCommandHandler>();
 
                 // bot query handlers
 
-                services.AddTransient<IBotInlineQueryHandler, BotInlineQueryHandler>();
+                services.AddSingleton<IBotInlineQueryHandler, BotInlineQueryHandler>();
             })
             .ConfigureLogging((ctx, lc) => {
                 Serilog.ILogger logger = new LoggerConfiguration()

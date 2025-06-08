@@ -2,7 +2,7 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink.Base;
+namespace Polyphonic.TelegramBot.CommandHandlers.SongLink.Base;
 
 internal class SongLinkConverterBotCommandHandlerBase
 {

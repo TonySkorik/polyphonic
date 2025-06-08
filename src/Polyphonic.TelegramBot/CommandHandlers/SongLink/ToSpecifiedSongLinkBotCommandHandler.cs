@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Polyphonic.TelegramBot.Abstractions;
-using Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink.Base;
+using Polyphonic.TelegramBot.CommandHandlers.SongLink.Base;
 using Polyphonic.TelegramBot.Helpers;
 using Polyphonic.TelegramBot.Model;
 using Songlink.Client;
@@ -8,23 +8,25 @@ using Songlink.Client.Model;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink;
+namespace Polyphonic.TelegramBot.CommandHandlers.SongLink;
 
-internal class ConvertToSpecifiedSongLinkBotCommandHandler(
+internal class ToSpecifiedSongLinkBotCommandHandler(
 	SongLinkClient songLinkClient,
-	ILogger<ConvertToSpecifiedSongLinkBotCommandHandler> logger
-) : SongLinkConverterBotCommandHandlerBase, IBotCommandHandler
+	ILogger<ToSpecifiedSongLinkBotCommandHandler> logger) : SongLinkConverterBotCommandHandlerBase, IBotCommandHandler
 {
-	private static readonly HashSet<string> _supportedCommands =
-	[
-		"toyandex",
-		"tospotify",
-		"toyoutube"
-	];
+	private static Dictionary<string, SongLinkPlatform> _platformsByAllowedCommands = new()
+	{
+		["toyandex"] = SongLinkPlatform.Yandex,
+		["tospotify"] = SongLinkPlatform.Spotify,
+		["toyoutube"] = SongLinkPlatform.Youtube,
+		["toyoutubemusic"] = SongLinkPlatform.YoutubeMusic,
+		["toapple"] = SongLinkPlatform.AppleMusic,
+
+	};
 
 	public (bool CanHandleInMessage, bool CanHandleInline) CanHandle(ParsedBotCommand command)
 		=>
-			(_supportedCommands.Contains(command.CommandName), false);
+			(_platformsByAllowedCommands.ContainsKey(command.CommandName), false);
 
 	public async Task HandleAsync(
 		ITelegramBotClient botClient,
@@ -34,26 +36,21 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 	{
 		var (_, sender) = message.GetSender();
 
-		var (hasValidSongShareLink, songShareLink) =
-			await TryGetSongShareLinkFromCommand(
-				botClient,
-				sender,
-				command,
-				isSendErrorMessagesToChat: false,
-				cancellationToken);
+		var (hasValidSongShareLink, songShareLink) = await TryGetSongShareLinkFromCommand(
+            botClient,
+            sender,
+            command,
+            isSendErrorMessagesToChat: false,
+            cancellationToken);
 
 		if (!hasValidSongShareLink)
 		{
 			return;
 		}
 
-		SongLinkPlatform targetMusicPlatform = command.CommandName switch
-		{
-			"toyandex" => SongLinkPlatform.Yandex,
-			"tospotify" => SongLinkPlatform.Spotify,
-			"toyoutube" => SongLinkPlatform.Youtube,
-			_ => SongLinkPlatform.Unknown
-		};
+		SongLinkPlatform targetMusicPlatform = _platformsByAllowedCommands.GetValueOrDefault(
+			command.CommandName,
+			SongLinkPlatform.Unknown);
 
 		if (targetMusicPlatform == SongLinkPlatform.Unknown)
 		{
@@ -124,7 +121,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 		logger.LogInformation(
 			"An inline query was issued to handler {HandlerName}. Handler can't handle inline queries",
 			nameof(
-				ConvertToSpecifiedSongLinkBotCommandHandler));
+				ToSpecifiedSongLinkBotCommandHandler));
 
 		return Task.CompletedTask;
 	}

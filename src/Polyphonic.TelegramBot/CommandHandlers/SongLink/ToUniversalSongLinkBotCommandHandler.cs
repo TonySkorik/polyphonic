@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Polyphonic.TelegramBot.Abstractions;
-using Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink.Base;
+using Polyphonic.TelegramBot.CommandHandlers.SongLink.Base;
 using Polyphonic.TelegramBot.Helpers;
 using Polyphonic.TelegramBot.Model;
 using Songlink.Client;
@@ -9,15 +9,16 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InlineQueryResults;
 
-namespace Polyphonic.TelegramBot.Handlers.CommandHandlers.SongLink;
+namespace Polyphonic.TelegramBot.CommandHandlers.SongLink;
 
-internal class ConvertToUniversalSongLinkBotCommandHandler(
+internal class ToUniversalSongLinkBotCommandHandler(
     SongLinkClient songLinkClient,
-    ILogger<ConvertToUniversalSongLinkBotCommandHandler> logger
-) : SongLinkConverterBotCommandHandlerBase, IBotCommandHandler
+    ILogger<ToUniversalSongLinkBotCommandHandler> logger) : SongLinkConverterBotCommandHandlerBase, IBotCommandHandler
 {
+    public const string COMMAND_NAME = "convert";
+
     public (bool CanHandleInMessage, bool CanHandleInline) CanHandle(ParsedBotCommand command) =>
-        (command.CommandName == "convert", true);
+        (command.CommandName == COMMAND_NAME, true);
 
     public async Task HandleAsync(
         ITelegramBotClient botClient,
@@ -126,6 +127,8 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
             TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.Yandex);
             TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.Spotify);
             TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.Youtube);
+            TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.YoutubeMusic);
+            TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.AppleMusic);
             
             await botClient.AnswerInlineQuery(
                 inlineQuery.Id,
