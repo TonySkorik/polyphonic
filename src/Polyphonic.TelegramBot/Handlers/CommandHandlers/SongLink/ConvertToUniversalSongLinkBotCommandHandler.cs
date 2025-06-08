@@ -40,7 +40,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
             return;
         }
 
-        await botClient.SendTextMessageAsync(
+        await botClient.SendMessage(
             sender.Id,
             "Getting universal song share link, please wait...",
             cancellationToken: cancellationToken);
@@ -56,7 +56,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
                     "Failed to get universal song share link, for '{SongShareLink}'",
                     command.CommandArgumentsString);
                 
-                await botClient.SendTextMessageAsync(
+                await botClient.SendMessage(
                     sender.Id,
                     $"Can't get universal song share link, for {songShareLink}",
                     cancellationToken: cancellationToken);
@@ -64,14 +64,14 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
                 return;
             }
 
-            await botClient.SendTextMessageAsync(
+            await botClient.SendMessage(
                 sender.Id,
                 allSongLinksResponse.PageUrl,
                 cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
-            await botClient.SendTextMessageAsync(
+            await botClient.SendMessage(
                 sender.Id,
                 $"Error getting universal song link : {ex.Message}",
                 cancellationToken: cancellationToken);
@@ -127,7 +127,7 @@ internal class ConvertToUniversalSongLinkBotCommandHandler(
             TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.Spotify);
             TryAddSpecificPlatformInlineResult(inlineQueryResults, allSongLinksResponse, SongLinkPlatform.Youtube);
             
-            await botClient.AnswerInlineQueryAsync(
+            await botClient.AnswerInlineQuery(
                 inlineQuery.Id,
                 results: inlineQueryResults,
                 cancellationToken: cancellationToken);

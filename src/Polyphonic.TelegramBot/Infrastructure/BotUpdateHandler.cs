@@ -44,6 +44,17 @@ internal class BotUpdateHandler(
         }
     }
 
+    public Task HandleErrorAsync(
+        ITelegramBotClient botClient,
+        Exception exception,
+        HandleErrorSource source, 
+        CancellationToken cancellationToken)
+    {
+        logger.LogError(exception, "Exception happened during bot API access");
+
+        return Task.CompletedTask;
+    }
+
     public Task HandlePollingErrorAsync(
         ITelegramBotClient botClient,
         Exception exception,
@@ -87,7 +98,7 @@ internal class BotUpdateHandler(
         {
             // this is equivalent to forwarding, without the sender's name
             
-            await botClient.CopyMessageAsync(
+            await botClient.CopyMessage(
                 sender.Id,
                 sender.Id,
                 message.MessageId,
@@ -104,7 +115,7 @@ internal class BotUpdateHandler(
 
         if (!parsedCommand.IsCommandValid)
         {
-            await botClient.SendTextMessageAsync(
+            await botClient.SendMessage(
                 message.From!.Id,
                 $"Invalid command '{parsedCommand.CommandName}'. Command format : '/<command_name> [argument_1] ... [argument_n]'",
                 cancellationToken: cancellationToken);
@@ -145,10 +156,10 @@ internal class BotUpdateHandler(
         // }
 
         // Close the query to end the client-side loading animation
-        await botClient.AnswerCallbackQueryAsync(query.Id, cancellationToken: cancellationToken);
+        await botClient.AnswerCallbackQuery(query.Id, cancellationToken: cancellationToken);
 
         // Replace menu text and keyboard
-        await botClient.EditMessageTextAsync(
+        await botClient.EditMessageText(
             query.Message!.Chat.Id,
             query.Message.MessageId,
             text,

@@ -57,7 +57,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 
 		if (targetMusicPlatform == SongLinkPlatform.Unknown)
 		{
-			await botClient.SendTextMessageAsync(
+			await botClient.SendMessage(
 				sender.Id,
 				"Unknown target song link platform. Check command name.",
 				cancellationToken: cancellationToken);
@@ -65,7 +65,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 			return;
 		}
 
-		await botClient.SendTextMessageAsync(
+		await botClient.SendMessage(
 			sender.Id,
 			$"Getting {targetMusicPlatform} song share link, please wait...",
 			cancellationToken: cancellationToken);
@@ -75,14 +75,15 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 			var allSongLinksResponse =
 				await songLinkClient.GetAllSongLinksAsync(songShareLink, cancellationToken);
 
-			if (allSongLinksResponse.IsSuccess || allSongLinksResponse.LinksByPlatform is {Count: 0})
+			if (!allSongLinksResponse.IsSuccess 
+				|| allSongLinksResponse.LinksByPlatform is null or {Count: 0})
 			{
 				logger.LogInformation(
 					"Failed to get {TargetMusicPlatform} song share link, for {SongShareLink}'",
 					targetMusicPlatform,
 					command.CommandArgumentsString);
 
-				await botClient.SendTextMessageAsync(
+				await botClient.SendMessage(
 					sender.Id,
 					$"Can't get {targetMusicPlatform} song share link, for {command.CommandArgumentsString}",
 					cancellationToken: cancellationToken);
@@ -92,7 +93,7 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 
 			if (!allSongLinksResponse.LinksByPlatform.TryGetValue(targetMusicPlatform, out var targetPlatformSongLinks))
 			{
-				await botClient.SendTextMessageAsync(
+				await botClient.SendMessage(
 					sender.Id,
 					$"No share link for platform {targetMusicPlatform} found.",
 					cancellationToken: cancellationToken);
@@ -100,14 +101,14 @@ internal class ConvertToSpecifiedSongLinkBotCommandHandler(
 				return;
 			}
 
-			await botClient.SendTextMessageAsync(
+			await botClient.SendMessage(
 				sender.Id,
 				targetPlatformSongLinks.Url,
 				cancellationToken: cancellationToken);
 		}
 		catch (Exception ex)
 		{
-			await botClient.SendTextMessageAsync(
+			await botClient.SendMessage(
 				sender.Id,
 				$"Error getting universal song link : {ex.Message}",
 				cancellationToken: cancellationToken);

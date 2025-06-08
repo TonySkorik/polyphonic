@@ -17,7 +17,7 @@ internal class SongLinkConverterBotCommandHandlerBase
 	{
 		if (isSendErrorMessagesToChat && command.CommandArgumentsString is null or {Length: 0})
 		{
-			await botClient.SendTextMessageAsync(
+			await botClient.SendMessage(
 				user.Id,
 				"Get song link command must be followed by an song share url string",
 				cancellationToken: cancellationToken);
@@ -29,7 +29,7 @@ internal class SongLinkConverterBotCommandHandlerBase
 		{
 			if (isSendErrorMessagesToChat)
 			{
-				await botClient.SendTextMessageAsync(
+				await botClient.SendMessage(
 					user.Id,
 					$"Invalid song share url '{command.CommandArgumentsString}'",
 					cancellationToken: cancellationToken);

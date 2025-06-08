@@ -14,6 +14,12 @@ internal class SongLinkClientTests
         _songLinkClient = new SongLinkClient("https://api.song.link/");
     }
 
+    [OneTimeTearDown]
+    public void OneTimeTeradown()
+    {
+        _songLinkClient.Dispose();
+    }
+
     [Test]
     public async Task TestGetAllSongLinks_SongNotFound()
     {
@@ -49,6 +55,8 @@ internal class SongLinkClientTests
         response.ErrorMessage.Should().BeNull();
 
         response.EntitiesByUniqueId.Count.Should().BeGreaterThan(0);
+
+        response.LinksByPlatform.Should().NotBeNullOrEmpty();
         response.LinksByPlatform.Count.Should().BeGreaterThan(0);
 
         response.PageUrl.Should().NotBeNullOrEmpty();
@@ -67,6 +75,8 @@ internal class SongLinkClientTests
         response.ErrorMessage.Should().BeNull();
 
         response.EntitiesByUniqueId.Count.Should().BeGreaterThan(0);
+
+        response.LinksByPlatform.Should().NotBeNullOrEmpty();
         response.LinksByPlatform.Count.Should().BeGreaterThan(0);
 
         response.PageUrl.Should().NotBeNullOrEmpty();

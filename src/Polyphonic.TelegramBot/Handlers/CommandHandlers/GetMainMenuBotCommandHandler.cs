@@ -42,10 +42,10 @@ internal class GetMainMenuBotCommandHandler(ILogger<GetMainMenuBotCommandHandler
 		ParsedBotCommand command,
 		CancellationToken cancellationToken)
 	{
-		await botClient.SendTextMessageAsync(
+		await botClient.SendMessage(
 			message.From!.Id,
 			BOT_MAIN_MENU_MESSAGE,
-			(int) ParseMode.Html,
+			ParseMode.Html,
 			replyMarkup: _botMainMenuMarkup,
 			cancellationToken: cancellationToken);
 	}
